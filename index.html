@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lapse Game 2075</title>
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Настройки и начало игры -->
+        <div id="settings-screen" class="screen active">
+            <div class="settings-panel">
+                <h1 class="game-title"></h1>
+                <p class="game-subtitle"></p>
+                
+                <div class="settings-form">
+                    <div class="input-group">
+                        <label for="language-select"></label>
+                        <select id="language-select">
+                            <option value="en">English</option>
+                            <option value="ru">Русский</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="api-key"></label>
+                        <input type="password" id="api-key" placeholder="">
+                        <small></small>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="model-select"></label>
+                        <select id="model-select">
+                            <option value="gemini-fast">Google Gemini 2.5 Flash Lite (Очень быстрый)</option>
+                            <option value="openai-fast">OpenAI GPT-5 Nano (Долгий и умный)</option>
+                            <option value="grok">xAI Grok 4 Fast (Быстрый и умный)</option>
+                            <option value="qwen-coder">Qwen3 Coder 30B (Средний и умный)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="temperature"></label>
+                        <input type="number" id="temperature" min="0" max="2" step="0.1" value="0.85">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="max-tokens"></label>
+                        <input type="number" id="max-tokens" min="0" max="10000" step="500" value="" placeholder="">
+                        <small></small>
+                    </div>
+                    
+                    <button id="start-game-btn" class="btn-primary" type="button" onclick="console.log('Inline onclick works');"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Игровой экран -->
+        <div id="game-screen" class="screen">
+            <!-- Статистики -->
+            <div class="stats-bar">
+                <div class="stat-item" data-stat="environment">
+                    <div class="stat-icon">🌿</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill" style="height: 50%"></div>
+                    </div>
+                    <div class="stat-label"></div>
+                    <div class="stat-value">50</div>
+                </div>
+                <div class="stat-item" data-stat="population">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill" style="height: 50%"></div>
+                    </div>
+                    <div class="stat-label"></div>
+                    <div class="stat-value">50</div>
+                </div>
+                <div class="stat-item" data-stat="military">
+                    <div class="stat-icon">🛡️</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill" style="height: 50%"></div>
+                    </div>
+                    <div class="stat-label"></div>
+                    <div class="stat-value">50</div>
+                </div>
+                <div class="stat-item" data-stat="economy">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-progress">
+                        <div class="stat-fill" style="height: 50%"></div>
+                    </div>
+                    <div class="stat-label"></div>
+                    <div class="stat-value">50</div>
+                </div>
+            </div>
+
+            <!-- Год -->
+            <div class="year-display">
+                <span>Год: <span id="year-value">2075</span></span>
+            </div>
+
+            <!-- Карточка -->
+            <div class="card-container">
+                <div id="game-card" class="card" style="display: none; opacity: 0;">
+                    <div class="card-background"></div>
+                    <div class="card-content">
+                        <div class="character-info">
+                            <div class="character-icon" id="character-icon">👤</div>
+                            <div class="character-name" id="character-name"></div>
+                        </div>
+                        <div class="card-text" id="card-text"></div>
+                        <div class="choices-overlay">
+                            <div class="choice-left" id="choice-left">
+                                <span id="choice-left-text"></span>
+                            </div>
+                            <div class="choice-right" id="choice-right">
+                                <span id="choice-right-text"></span>
+                            </div>
+                        </div>
+                        <div class="choice-buttons">
+                            <button class="choice-btn choice-btn-left" id="choice-btn-left"></button>
+                            <button class="choice-btn choice-btn-right" id="choice-btn-right"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Перки -->
+            <div class="perks-bar" id="perks-bar">
+                <div class="perks-title"></div>
+                <div class="perks-list" id="perks-list"></div>
+            </div>
+
+            <!-- Кнопка рестарта -->
+            <button id="restart-btn" class="btn-restart" style="display: none;"></button>
+
+            <!-- Индикатор загрузки -->
+            <div id="loading-indicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <p></p>
+                <button id="retry-btn" class="btn-primary" style="display: none; margin-top: 15px;"></button>
+            </div>
+        </div>
+
+        <!-- Экран окончания игры -->
+        <div id="game-over-screen" class="screen">
+            <div class="game-over-panel">
+                <h2></h2>
+                <p id="game-over-message"></p>
+                <button id="new-game-btn" class="btn-primary"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Встроенный тест для проверки работы -->
+    <script>
+        console.log('=== LAPSE GAME DEBUG ===');
+        console.log('HTML loaded');
+        console.log('Current URL:', window.location.href);
+        console.log('Protocol:', window.location.protocol);
+        
+        // Предупреждение если открыто через file://
+        if (window.location.protocol === 'file:') {
+            console.warn('ВНИМАНИЕ: Файл открыт через file:// протокол');
+            console.warn('Некоторые функции могут не работать. Рекомендуется использовать локальный сервер.');
+            
+            // Показываем предупреждение пользователю
+            setTimeout(() => {
+                const warning = document.createElement('div');
+                warning.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:white;padding:15px;text-align:center;z-index:10000;font-weight:bold;';
+                warning.innerHTML = '⚠️ Файл открыт через file://. Для правильной работы рекомендуется использовать локальный сервер. <a href="test.html" style="color:white;text-decoration:underline;">Открыть тестовую страницу</a>';
+                document.body.appendChild(warning);
+                setTimeout(() => warning.remove(), 10000);
+            }, 1000);
+        }
+        
+        // Проверяем наличие элементов
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM Content Loaded');
+            const startBtn = document.getElementById('start-game-btn');
+            console.log('Start button found:', !!startBtn);
+            
+            if (startBtn) {
+                console.log('Start button element:', startBtn);
+                // Простой тест - меняем цвет кнопки при клике
+                const testHandler = function() {
+                    console.log('BUTTON CLICKED! This function works!');
+                    alert('Кнопка работает! JavaScript загружен правильно.\n\nТеперь должна загрузиться основная игра...');
+                    this.style.background = 'red';
+                    setTimeout(() => {
+                        this.style.background = '';
+                    }, 1000);
+                };
+                startBtn.addEventListener('click', testHandler);
+                console.log('Test handler attached to button');
+            } else {
+                console.error('Start button NOT FOUND!');
+                alert('ОШИБКА: Кнопка "Начать игру" не найдена на странице!');
+            }
+        });
+        
+        // Проверяем загрузку внешнего скрипта
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e);
+            if (e.filename && e.filename.includes('script.js')) {
+                console.error('ERROR loading script.js:', e.message);
+                alert('Ошибка загрузки script.js: ' + e.message + '\n\nУбедитесь, что файл script.js находится в той же папке, что и index.html');
+            }
+        });
+        
+        // Проверяем загрузку script.js
+        setTimeout(() => {
+            if (typeof GameUI === 'undefined') {
+                console.error('GameUI class not found! script.js may not have loaded.');
+                alert('ОШИБКА: script.js не загрузился или содержит ошибки!\n\nПроверьте консоль браузера (F12) для подробностей.');
+            } else {
+                console.log('GameUI class found - script.js loaded successfully');
+            }
+        }, 2000);
+    </script>
+    
+    <!-- Встроенная версия для теста, если внешний скрипт не загружается -->
+    <script>
+        // Пробуем загрузить script.js динамически с обработкой ошибок
+        function loadScript(src, callback) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = function() {
+                console.log(src + ' загружен успешно');
+                if (callback) callback(true);
+            };
+            script.onerror = function(e) {
+                console.error('ОШИБКА загрузки ' + src, e);
+                if (callback) callback(false);
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Загружаем script.js с кэш-бастером
+        loadScript('script.js?v=' + Date.now(), function(success) {
+            if (!success) {
+                console.error('Не удалось загрузить script.js');
+                alert('ОШИБКА: Не удалось загрузить script.js!\n\nВозможные причины:\n1. Файл поврежден или содержит ошибки\n2. Проблема с кодировкой файла\n3. Браузер блокирует выполнение\n\nПопробуйте:\n- Открыть через локальный сервер (python -m http.server)\n- Проверить консоль на наличие ошибок');
+            } else {
+                // Проверяем, что класс GameUI загрузился
+                setTimeout(() => {
+                    if (typeof GameUI === 'undefined') {
+                        console.error('GameUI не определен после загрузки script.js');
+                        alert('ОШИБКА: script.js загружен, но GameUI класс не найден!\n\nВозможно, в файле есть синтаксическая ошибка.');
+                    } else {
+                        console.log('GameUI класс найден - все работает!');
+                    }
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
+
