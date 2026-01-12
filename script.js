@@ -924,7 +924,7 @@ Available characters: ${characterList}
 
 Format: {"cards": [{"character": "ID", "text": "Text", "choices": [{"text": "Choice1", "effects": {"stat1": value}}, {"text": "Choice2", "effects": {"stat2": value}}]}]}
 
-Generate a JSON object with "cards" field - an array of ${CARDS_BATCH_SIZE} new cards continuing the story. 
+Generate exactly ${CARDS_BATCH_SIZE} cards. KEEP TEXT CONCISE to avoid response truncation.
 Answer ONLY with valid JSON object, without \`\`\`json, comments or any other text.`;
 
         if (this.game.choicesSinceLastPerkOffer >= PERK_OFFER_INTERVAL) {
@@ -1049,6 +1049,20 @@ Answer ONLY with valid JSON object, without \`\`\`json, comments or any other te
             }
         } catch (error) {
             console.error("JSON Parse Error:", error, "Response:", cleanedResponse.substring(0, 200));
+            console.warn("JSON error, trying to salvage partial data...");
+            if (this.game.cardQueue.length > 0 || (this.game.currentCardId && this.game.storyData.cards[this.game.currentCardId])) {
+                console.log("Continuing with existing data.");
+                this.isGenerating = false;
+                if (this.isGeneratingAndWaiting) {
+                    this.isGeneratingAndWaiting = false;
+                    this.showLoading(false);
+                    this.drawNextCard();
+                } else {
+                    this.showLoading(false);
+                }
+                return;
+            }
+            
             this.game.isGameOver = true;
             this.game.message = this.game.t('errors').aiInsane;
             this.isGenerating = false;
